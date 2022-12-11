@@ -1,52 +1,39 @@
 import cv2
 
-# initialize the video stream and the face detector
-vs = cv2.VideoCapture(0)
-detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+# Create a new named window
+cv2.namedWindow("Face Detection")
 
-# initialize variables to keep track of the total number of frames and the number of frames with a face
-total_frames = 0
-face_frames = 0
+# Start capturing video from the webcamera
+video_capture = cv2.VideoCapture(0)
 
-# loop until the end of the video stream is reached
+# Create a Haar Cascade object for face detection
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+# Loop indefinitely
 while True:
-    # read the next frame from the stream
-    ret, frame = vs.read()
+    # Read the current frame from the video capture
+    ret, frame = video_capture.read()
 
-    # if the frame could not be read, break out of the loop
-    if not ret:
-        break
-
-    # increment the total number of frames
-    total_frames += 1
-
-    # convert the frame to grayscale
+    # Convert the frame to grayscale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # detect faces in the frame
-    faces = detector.detectMultiScale(
-        gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+    # Detect faces in the current frame
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-    # if at least one face was detected, increment the face_frames counter
-    if len(faces) > 0:
-        face_frames += 1
+    # Draw a rectangle around each detected face
+    for (x, y, w, h) in faces:
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
-    # display the current frame
-    cv2.imshow("Frame", frame)
-    key = cv2.waitKey(1) & 0xFF
+    # Show the current frame in the named window
+    cv2.imshow("Face Detection", frame)
 
-    # if the `q` key was pressed, break out of the loop
-    if key == ord("q"):
+    # Wait for a key press
+    key = cv2.waitKey(1)
+    if key == ord('q'):
         break
 
-# calculate the percentage of frames with a face
-face_percentage = (face_frames / total_frames) * 100
+# Release the video capture object
+video_capture.release()
 
-# print the percentage of frames with a face
-print("{:.2f}% of frames contained a face".format(face_percentage))
-
-# release the video stream
-vs.release()
-
-# close all windows
+# Destroy all windows
 cv2.destroyAllWindows()
