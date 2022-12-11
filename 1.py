@@ -1,37 +1,47 @@
 import cv2
 
-# load a cascade filet (face érzékeléshez)
+#Betoltjük a cascade frontalfacet
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-# videó fike egnyitása
-video = cv2.VideoCapture('video.mp4')
+# A videó amit elemezni akarunk
+cap = cv2.VideoCapture('video.mp4')
 
-# total frames a videóban
-total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+# scaling faktor
+scaling_factor = 0.5
 
-# arc amit látott a progi
-face_frames = 0
+# arcok amit érzékelt
+num_faces = 0
 
-# minden framet beolvasunk
-while video.isOpened():
-    ret, frame = video.read()
+# itratívan átnézi az egész videót
+while True:
+    # beolvassa a következő képkockákat
+    ret, frame = cap.read()
 
-    # ha valamit nem jól olvastunk be, kilép a ciklusból
-    """ if not ret:
-        break """
+    
 
-    # a frameket grayscaleba átkonvertáljuk
+    # resizeolja a framet
+    frame = cv2.resize(frame, None, fx=scaling_factor,
+                       fy=scaling_factor, interpolation=cv2.INTER_AREA)
+
+    # a képkockát grayscaleli
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # felsimerjuk az arcokat
-    faces = face_cascade.detectMultiScale(gray)
+    # futtatja az arc érzékelő cascadet, a grayscale frameken
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
-    # ha legalább egy arcot látott  videó, akkor számoljuk azt
-    if len(faces) > 0:
-        face_frames += 1
+    # inkrementálja az arcokat, amit érzékelt
+    num_faces += len(faces)
 
-# kiszámoljuk mennyi az annyi
-face_percentage = (face_frames / total_frames) * 100
+    # négyzetet rajzol az arcok körül
+    for (x, y, w, h) in faces:
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        
+    # Vége van, ha nincs több frame.
+    if not ret:
+        break
 
-# kiiratás
-print(f'{face_percentage:.2f}% of the video consists of human faces.')
+# kiírja mennyi arcot érzékelt
+print("Number of faces detected:", num_faces)
+
+# elengedi a capturelt objektumot
+cap.release()
