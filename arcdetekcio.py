@@ -37,7 +37,6 @@ while True:
         break
     #Ha nincs következő frame, akkor brake
     if not ret:
-        print(f'{num_percent:.2f}%-ban volt arc a videóban.')
         break
     
     #Mindig frissen kiírjuk, hogy hány %-a a videóna a felismert arc
